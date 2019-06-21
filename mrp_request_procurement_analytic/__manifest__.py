@@ -4,8 +4,8 @@
 
 {
     'name': 'MRP Production Request Procurement Analytic',
-    'summary': 'This module sets analytic account in mrp production of '
-               ' mrp request from procurement analytic account',
+    'description': 'This module sets analytic account in mrp production of '
+                   ' mrp request from procurement analytic account',
     'version': '10.0.1.0.0',
     'category': 'Analytic',
     'license': 'AGPL-3',
