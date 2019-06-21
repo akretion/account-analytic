@@ -28,8 +28,6 @@ class TestMrpRequestProcurementAnalytic(common.SavepointCase):
             'product_qty': 1.0,
             'account_analytic_id': cls.analytic_account.id,
         }
-        import ipdb
-        ipdb.set_trace()
         cls.procurement = cls.env['procurement.order'].create(procur_vals)
 
     def test_procurement_to_mrp_request(self):
