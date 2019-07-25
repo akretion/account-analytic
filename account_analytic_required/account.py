@@ -23,6 +23,7 @@
 
 from openerp.osv import orm, fields
 from openerp.tools.translate import _
+from openerp import models, api, exceptions
 
 
 class account_account_type(orm.Model):
@@ -53,20 +54,20 @@ class account_account_type(orm.Model):
     }
 
 
-class account_move_line(orm.Model):
+class account_move_line(models.Model):
     _inherit = "account.move.line"
 
-    def _get_analytic_policy(self, cr, uid, account, context=None):
+    @api.model
+    def _get_analytic_policy(self, account):
         """ Extension point to obtain analytic policy for an account """
         return account.user_type.analytic_policy
 
-    def _check_analytic_required_msg(self, cr, uid, ids, context=None):
-        for move_line in self.browse(cr, uid, ids, context):
+    @api.multi
+    def _check_analytic_required_msg(self):
+        for move_line in self:
             if move_line.debit == 0 and move_line.credit == 0:
                 continue
-            analytic_policy = self._get_analytic_policy(cr, uid,
-                                                        move_line.account_id,
-                                                        context=context)
+            analytic_policy = self._get_analytic_policy(move_line.account_id)
             if analytic_policy == 'always' and \
                     not move_line.analytic_account_id:
                 return _("Analytic policy is set to 'Always' with account "
@@ -86,10 +87,9 @@ class account_move_line(orm.Model):
                          move_line.analytic_account_id.code,
                          move_line.analytic_account_id.name)
 
-    def _check_analytic_required(self, cr, uid, ids, context=None):
-        return not self._check_analytic_required_msg(cr, uid, ids,
-                                                     context=context)
-
-    _constraints = [(_check_analytic_required,
-                     _check_analytic_required_msg,
-                     ['analytic_account_id', 'account_id', 'debit', 'credit'])]
+    @api.constrains('analytic_account_id', 'account_id', 'debit', 'credit')
+    def _check_analytic_required(self):
+        for rec in self:
+            message = rec._check_analytic_required_msg()
+            if message:
+                raise exceptions.ValidationError(message)
