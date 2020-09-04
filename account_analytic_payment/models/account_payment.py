@@ -17,16 +17,22 @@ class account_abstract_payment(models.AbstractModel):
     def default_get(self, fields):
         rec = super().default_get(fields)
         active_ids = self._context.get("active_ids")
-        inv = self.env["account.invoice"].browse(active_ids)
-        if len(inv) == 1:
+        invoices = self.env["account.invoice"].browse(active_ids)
+
+        aa_ids = self.env["account.analytic.account"]
+        atag_ids = self.env["account.analytic.tag"]
+        for inv in invoices:
+            aa_ids |= inv.invoice_line_ids.mapped("account_analytic_id")
+            atag_ids |= inv.invoice_line_ids.mapped("analytic_tag_ids")
+        if len(aa_ids) == 1:
             rec.update(
                 {
-                    "analytic_account_id": inv.account_analytic_id.id,
-                    "analytic_tag_ids": [(6, 0, inv.analytic_tag_ids.ids)],
+                    "analytic_account_id": aa_ids.id,
+                    "analytic_tag_ids": [(6, 0, atag_ids.ids)],
                 }
             )
-        else:
-            # TODO
+        elif len(aa_ids) > 1:
+            # TODO Warning "Many analytic account for 1 payment : Continue or Cancel"
             pass
         return rec
 
