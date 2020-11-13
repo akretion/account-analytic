@@ -42,9 +42,6 @@ class TestAccountAnalyticRequired(common.SavepointCase):
                 "name": "Sales Journal - (test)",
                 "code": "TSAJ",
                 "type": "sale",
-                "refund_sequence": True,
-                "default_debit_account_id": cls.account_sales.id,
-                "default_credit_account_id": cls.account_sales.id,
             }
         )
 
@@ -143,7 +140,7 @@ class TestAccountAnalyticRequired(common.SavepointCase):
         line = self._create_move(with_analytic=False)
         move = line.move_id
         with self.assertRaises(exceptions.ValidationError):
-            move.post()
+            move.action_post()
         line.write({"analytic_account_id": self.analytic_account.id})
-        move.post()
+        move.action_post()
         self.assertEqual(move.state, "posted")
