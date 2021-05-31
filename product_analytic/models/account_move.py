@@ -31,10 +31,11 @@ class AccountMoveLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            inv_type = self.env.context.get("inv_type", "out_invoice")
+            inv_type = self.env["account.move"].browse([vals["move_id"]]).move_type
             if (
                 vals.get("product_id")
                 and inv_type
+                and inv_type != "entry"
                 and not vals.get("analytic_account_id")
             ):
                 product = self.env["product.product"].browse(vals.get("product_id"))
